@@ -9,9 +9,7 @@ fun one() {
 
     val (first, second) = input
         .map {
-            it.split("   ").let {
-                it[0].toInt() to it[1].toInt()
-            }
+            it.split("   ").let { (first, second) -> first.toInt() to second.toInt() }
         }
         .unzip()
         .let { (first, second) ->
@@ -30,9 +28,7 @@ fun oneHard() {
 
     val (first, second) = input
         .map {
-            it.split("   ").let {
-                it[0].toInt() to it[1].toInt()
-            }
+            it.split("   ").let { (first, second) -> first.toInt() to second.toInt() }
         }
         .unzip()
 
