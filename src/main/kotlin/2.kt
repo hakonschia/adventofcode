@@ -11,9 +11,7 @@ fun two() {
         it.split(" ").map { it.toInt() }
     }
 
-    val unsafeCount = reports.filter { it.isUnsafe() }.size
-
-    val safe = (reports.size - unsafeCount)
+    val safe = reports.filter { !it.isUnsafe() }.size
 
     println("One:\t\t $safe")
 }
@@ -25,39 +23,23 @@ fun twoHard() {
         it.split(" ").map { it.toInt() }
     }
 
-    val originalUnsafeCount = reports.filter { it.isUnsafe() }.size
-
-    var safeCount = 0
-
-    reports.forEach { internal ->
-        if (internal.isUnsafe()) {
-            var safeList: List<Int>? = null
-
-            for (i in internal.indices) {
-                if (safeList == null) {
-                    val newList = internal.toMutableList().apply { removeAt(i) }
-                    if (!newList.isUnsafe()) {
-                        safeList = newList
-                        println("$newList is safe!")
-                    }
-                }
-            }
-
-            if (safeList != null) {
-                safeCount++
+    val safeCount = reports.count { internal ->
+        for (i in internal.indices) {
+            val newList = internal.toMutableList().apply { removeAt(i) }
+            if (!newList.isUnsafe()) {
+                return@count true
             }
         }
+
+        return@count false
     }
 
-    val safe = reports.size - originalUnsafeCount + safeCount
-
-    println("Twohard:\t\t $safe")
+    println("Twohard:\t\t $safeCount")
 }
 
 private fun List<Int>.isUnsafe(): Boolean {
     var previous = get(0)
     val isIncreasing = get(1) > previous
-    var hasSeenUnsafe = false
 
     for (i in 1 until size) {
         val current = get(i)
@@ -66,14 +48,14 @@ private fun List<Int>.isUnsafe(): Boolean {
         if (isThisIncreasing == isIncreasing) {
             val diff = abs(current - previous)
             if (diff !in 1..3) {
-                hasSeenUnsafe = true
+                return true
             }
         } else {
-            hasSeenUnsafe = true
+            return true
         }
 
         previous = current
     }
 
-    return hasSeenUnsafe
+    return false
 }
