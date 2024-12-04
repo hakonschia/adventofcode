@@ -6,14 +6,120 @@ fun four() {
 
     val asChar = input.map { it.toCharArray() }.toTypedArray()
 
-    println("${asChar.size} ${asChar[0].size}")
-
     val soupSolver = SoupSolver(asChar)
 
     soupSolver.findWord("XMAS")
 
-    println(soupSolver.generateBoard())
+ //   println(soupSolver.generateBoard())
     println("Found a total of ${soupSolver.solutions.size}")
+}
+
+fun fourHard() {
+    val input = Path("src/main/resources/4.txt").readLines()
+
+    val asChar = input.map { it.toCharArray() }.toTypedArray()
+
+    val soupSolver = SoupSolver(asChar)
+
+    soupSolver.findWord("MAS")
+
+    val aCoordsFound = mutableListOf<Coordinates>()
+    soupSolver.solutions.forEach { solution ->
+        val aCoord = when (solution.direction) {
+            WordDirection.HORIZONTAL -> Coordinates(
+                x = solution.startCoordinates.x + 1,
+                y = solution.startCoordinates.y
+            )
+            WordDirection.HORIZONTAL_REVERSE -> Coordinates(
+                x = solution.endCoordinates.x + 1,
+                y = solution.startCoordinates.y
+            )
+            WordDirection.VERTICAL -> Coordinates(
+                x = solution.startCoordinates.x,
+                y = solution.startCoordinates.y + 1
+            )
+            WordDirection.VERTICAL_REVERSE -> Coordinates(
+                x = solution.startCoordinates.x,
+                y = solution.startCoordinates.y - 1
+            )
+            WordDirection.DIAGONAL_DOWN -> Coordinates(
+                x = solution.startCoordinates.x + 1,
+                y = solution.startCoordinates.y + 1
+            )
+            WordDirection.DIAGONAL_DOWN_REVERSE -> Coordinates(
+                x = solution.startCoordinates.x - 1,
+                y = solution.startCoordinates.y + 1
+            )
+            WordDirection.DIAGONAL_UP -> Coordinates(
+                x = solution.startCoordinates.x + 1,
+                y = solution.startCoordinates.y - 1
+            )
+            WordDirection.DIAGONAL_UP_REVERSE -> Coordinates(
+                x = solution.startCoordinates.x - 1,
+                y = solution.startCoordinates.y - 1
+            )
+        }
+
+        if (aCoordsFound.contains(aCoord)) {
+            return@forEach
+        }
+
+        try {
+            /*
+            S.S
+            .A
+            M.M
+             */
+            if (
+                asChar[aCoord.y - 1][aCoord.x - 1] == 'S' &&
+                asChar[aCoord.y - 1][aCoord.x + 1] == 'S' &&
+                asChar[aCoord.y + 1][aCoord.x - 1] == 'M' &&
+                asChar[aCoord.y + 1][aCoord.x + 1] == 'M'
+            ) {
+                aCoordsFound.add(aCoord)
+            } else if (
+            /*
+            .M.S
+            ..A.
+            .M.S
+             */
+                asChar[aCoord.y - 1][aCoord.x - 1] == 'M' &&
+                asChar[aCoord.y - 1][aCoord.x + 1] == 'S' &&
+                asChar[aCoord.y + 1][aCoord.x - 1] == 'M' &&
+                asChar[aCoord.y + 1][aCoord.x + 1] == 'S'
+            ) {
+                aCoordsFound.add(aCoord)
+            } else if (
+                asChar[aCoord.y - 1][aCoord.x - 1] == 'M' &&
+                asChar[aCoord.y - 1][aCoord.x + 1] == 'M' &&
+                asChar[aCoord.y + 1][aCoord.x - 1] == 'S' &&
+                asChar[aCoord.y + 1][aCoord.x + 1] == 'S'
+            ) {
+                /*
+                .M.M
+                ..A.
+                .S.S
+                 */
+                aCoordsFound.add(aCoord)
+            } else if (
+                asChar[aCoord.y - 1][aCoord.x - 1] == 'S' &&
+                asChar[aCoord.y - 1][aCoord.x + 1] == 'M' &&
+                asChar[aCoord.y + 1][aCoord.x - 1] == 'S' &&
+                asChar[aCoord.y + 1][aCoord.x + 1] == 'M'
+            ) {
+                aCoordsFound.add(aCoord)
+                /*
+                .S.M
+                ..A.
+                .S.M
+                 */
+            }
+        } catch (e: ArrayIndexOutOfBoundsException) {
+
+        }
+    }
+
+    println("x-MASes ${aCoordsFound.size}")
 }
 
 /**
@@ -69,7 +175,7 @@ class SoupSolver(
      * @return The solution for the word, or `null` if the word wasn't found. If the solution is a duplicate then it is
      * still returned here, but is not added to [solutions]
      */
-    fun findWord(word: String){
+    fun findWord(word: String) {
         val checkers = listOf(
             this::checkRows,
             this::checkReverseRows,
@@ -84,7 +190,6 @@ class SoupSolver(
         // Call each function until we find a match
         checkers.forEach { checker ->
             checker.invoke(word)
-            println("After checking ${checker.name} there are now ${solutions.size} solutions")
         }
     }
 
@@ -190,9 +295,9 @@ class SoupSolver(
         board.forEachIndexed { rowIndex, row ->
             val rowAsString = row.joinToString("")
 
-            solutionCount += "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowAsString).toList().size
+            solutionCount += word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowAsString).toList().size
 
-            "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowAsString).forEach {
+            word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowAsString).forEach {
                 it.groups.filterNotNull().forEach { group ->
                     val startPos = group.range.first
 
@@ -225,8 +330,8 @@ class SoupSolver(
             val rowAsString = row.joinToString("").reversed()
 
 
-            solutionCount += "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowAsString).toList().size
-            "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowAsString).forEach {
+            solutionCount += word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowAsString).toList().size
+            word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowAsString).forEach {
                 it.groups.filterNotNull().forEach { group ->
                     val startPos = group.range.first
 
@@ -290,9 +395,9 @@ class SoupSolver(
         for (rowIndex in board.indices) {
             val columnWord = buildColumnWord(rowIndex)
 
-            solutionCount += "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).toList().size
+            solutionCount += word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).toList().size
 
-            "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).forEach {
+            word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).forEach {
                 it.groups.filterNotNull().forEach { group ->
                     val startPos = group.range.first
 
@@ -326,9 +431,9 @@ class SoupSolver(
         for (rowIndex in board.indices) {
             val columnWord = buildColumnWord(rowIndex).reversed()
 
-            solutionCount += "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).toList().size
+            solutionCount += word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).toList().size
 
-            "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).forEach {
+            word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).forEach {
                 it.groups.filterNotNull().forEach { group ->
                     val startPos = group.range.first
 
@@ -387,16 +492,19 @@ class SoupSolver(
             // On an n*n square we can use rowIndex, but if we're not on n*n this wouldn't work
             val columnWord = buildDownwardDiagonal(rowIndex, buildForColumns = true)
 
-            solutionCount += "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).toList().size
+            solutionCount += word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).toList().size
 
-            "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).forEach {
+            word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).forEach {
                 it.groups.filterNotNull().forEach { group ->
                     val startPosColumn = group.range.first
 
                     SoupWordSolution(
                         word = word,
                         startCoordinates = Coordinates(x = rowIndex + startPosColumn, y = startPosColumn),
-                        endCoordinates = Coordinates(x = rowIndex + startPosColumn + word.length - 1, y = startPosColumn + word.length - 1),
+                        endCoordinates = Coordinates(
+                            x = rowIndex + startPosColumn + word.length - 1,
+                            y = startPosColumn + word.length - 1
+                        ),
                         direction = WordDirection.DIAGONAL_DOWN
                     ).also {
                         if (!_solutions.contains(it)) {
@@ -410,9 +518,9 @@ class SoupSolver(
 
             val rowWord = buildDownwardDiagonal(rowIndex, buildForColumns = false)
 
-            solutionCount += "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowWord).toList().size
+            solutionCount += word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowWord).toList().size
 
-            "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowWord).forEach {
+            word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowWord).forEach {
                 it.groups.filterNotNull().forEach { group ->
                     val startPosRow = group.range.first
 
@@ -420,7 +528,10 @@ class SoupSolver(
                         word = word,
 
                         startCoordinates = Coordinates(x = startPosRow, y = rowIndex + startPosRow),
-                        endCoordinates = Coordinates(x = startPosRow + word.length - 1, y = rowIndex + startPosRow + word.length - 1),
+                        endCoordinates = Coordinates(
+                            x = startPosRow + word.length - 1,
+                            y = rowIndex + startPosRow + word.length - 1
+                        ),
                         direction = WordDirection.DIAGONAL_DOWN
                     ).also {
                         if (!_solutions.contains(it)) {
@@ -475,9 +586,9 @@ class SoupSolver(
             // On an n*n square we can use rowIndex, but if we're not on n*n this wouldn't work
             val columnWord = buildReverseDownwardDiagonal(rowIndex, buildForColumns = true)
 
-            solutionCount += "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).toList().size
+            solutionCount += word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).toList().size
 
-            "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).forEach {
+            word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).forEach {
                 it.groups.filterNotNull().forEach { group ->
                     val startPosColumn = group.range.first
 
@@ -510,8 +621,8 @@ class SoupSolver(
             val rowWord = buildReverseDownwardDiagonal(rowIndex, buildForColumns = false)
 
             // We need to ignore the case as words
-            solutionCount += "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowWord).toList().size
-            "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowWord).forEach {
+            solutionCount += word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowWord).toList().size
+            word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowWord).forEach {
                 it.groups.filterNotNull().forEach { group ->
                     val startPosRow = group.range.first
 
@@ -550,9 +661,9 @@ class SoupSolver(
             // An upwards diagonal is the downwards diagonal reversed, when the word is built for a row (since a diagonal one
             // way starts at a row and ends at a column on the other side)
             val columnWord = buildReverseDownwardDiagonal(rowIndex, buildForColumns = false).reversed()
-            solutionCount += "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).toList().size
+            solutionCount += word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).toList().size
 
-            "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).forEach {
+            word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).forEach {
                 it.groups.filterNotNull().forEach { group ->
                     val startPosColumn = group.range.first
 
@@ -579,9 +690,9 @@ class SoupSolver(
 
             // A reversed upwards diagonal is the downwards diagonal reversed
             val rowWord = buildReverseDownwardDiagonal(rowIndex, buildForColumns = true).reversed()
-            solutionCount += "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowWord).toList().size
+            solutionCount += word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowWord).toList().size
 
-            "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowWord).forEach {
+            word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowWord).forEach {
                 it.groups.filterNotNull().forEach { group ->
                     val startPosRow = group.range.first
 
@@ -622,9 +733,9 @@ class SoupSolver(
         for (rowIndex in board.indices) {
             val columnWord = buildDownwardDiagonal(rowIndex, buildForColumns = false).reversed()
 
-            solutionCount += "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).toList().size
+            solutionCount += word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).toList().size
 
-            "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).forEach {
+            word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(columnWord).forEach {
                 it.groups.filterNotNull().forEach { group ->
                     val startPosColumn = group.range.first
 
@@ -648,11 +759,10 @@ class SoupSolver(
                 }
             }
 
-
             val rowWord = buildDownwardDiagonal(rowIndex, buildForColumns = true).reversed()
-            solutionCount += "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowWord).toList().size
+            solutionCount += word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowWord).toList().size
 
-            "xmas".toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowWord).forEach {
+            word.toRegex(setOf(RegexOption.IGNORE_CASE)).findAll(rowWord).forEach {
                 it.groups.filterNotNull().forEach { group ->
                     val startPosRow = group.range.first
 
