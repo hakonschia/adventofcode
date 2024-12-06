@@ -11,6 +11,8 @@ fun Array<CharArray>.print() {
     }
 }
 
+class InALoopException() : Exception("Hooray, you tricked the guard")
+
 fun six() {
     val input = Path("src/main/resources/6.txt").readLines()
 
@@ -41,7 +43,7 @@ fun sixHard() {
 
         try {
             newMap.findPositions()
-        } catch (e: IllegalStateException) {
+        } catch (e: InALoopException) {
             count++
         }
     }
@@ -95,7 +97,7 @@ private fun Array<CharArray>.findPositions(): Set<Pair<Int, Int>> {
 
                 // Just throw I guess to signal we're in a loop
                 if (!positionsTakenWithDirection.add(position to current)) {
-                    throw IllegalStateException()
+                    throw InALoopException()
                 }
             }
         }
