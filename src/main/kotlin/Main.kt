@@ -1,9 +1,9 @@
 package org.example
 
-import five
-import fiveHard
+import six
+import sixHard
 
 fun main() {
-    five()
-    fiveHard()
+    six()
+    sixHard()
 }
