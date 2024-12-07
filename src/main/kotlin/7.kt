@@ -2,6 +2,8 @@ package org.example
 
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
+import kotlin.system.measureTimeMillis
+import kotlin.time.measureTimedValue
 
 fun seven() {
     val input = Path("src/main/resources/7.txt").readLines()
@@ -14,15 +16,17 @@ fun seven() {
             it[0].toLong() to it[1].split(" ").map { it.toLong() }
         }
 
-    val sum = testValuesAndEquations.sumOf { (testValue, equation) ->
-        if (isValidEquation(equation, testValue)) {
-            testValue
-        } else {
-            0
+    val (sum, time) = measureTimedValue {
+        testValuesAndEquations.sumOf { (testValue, equation) ->
+            if (isValid(equation = equation, wantedSum = testValue, sumSoFar = 0L, index = 0, concatenate = false)) {
+                testValue
+            } else {
+                0
+            }
         }
     }
 
-    println("Seven $sum")
+    println("Seven $sum $time")
 }
 
 fun sevenHard() {
@@ -36,171 +40,68 @@ fun sevenHard() {
             it[0].toLong() to it[1].split(" ").map { it.toLong() }
         }
 
-    val invalid = testValuesAndEquations.filterNot { (testValue, equation) -> isValidEquation(equation, testValue) }
-
-    val sum1 = testValuesAndEquations.sumOf { (testValue, equation) ->
-        if (isValidEquation(equation, testValue)) {
-            testValue
-        } else {
-            0
+    val (sum, time) = measureTimedValue {
+        testValuesAndEquations.sumOf { (testValue, equation) ->
+            if (isValid(equation = equation, wantedSum = testValue, sumSoFar = 0L, index = 0, concatenate = true)) {
+                testValue
+            } else {
+                0
+            }
         }
     }
 
-    val sum2 = testValuesAndEquations.filterNot { (testValue, equation) -> isValidEquation(equation, testValue) }.sumOf { (testValue, equation) ->
-        if (isValidEquation2(equation, testValue)) {
-            testValue
-        } else {
-            0
-        }
-    }
-
-    println("Sevenh $sum1 + $sum2 = ${sum1 + sum2}")
+    println("Sevenhard $sum $time")
 }
 
-private fun isValidEquation(equation: List<Long>, wantedSum: Long): Boolean {
-    var temporarySum = 0L
-
-    fun addOrMultiple(index: Int, add: Boolean) {
-        if (index == equation.size) {
-            return
-        }
-
-        val value = equation[index]
-
-        if (add) {
-            //println("Equation: $temporarySum + $value = ${temporarySum + value}")
-            temporarySum += value
-        } else {
-            //println("Equation: $temporarySum * $value = ${temporarySum * value}")
-            temporarySum *= value
-        }
-
-        val sumBefore = temporarySum
-        addOrMultiple(index + 1, true)
-
-        if (temporarySum == wantedSum) {
-            return
-        }
-
-        temporarySum = sumBefore
-        addOrMultiple(index + 1, false)
+private fun isValid(
+    equation: List<Long>,
+    wantedSum: Long,
+    sumSoFar: Long,
+    index: Int,
+    concatenate: Boolean
+): Boolean {
+    if (index == equation.size) {
+        return sumSoFar == wantedSum
     }
 
-    addOrMultiple(0, true)
+    val currentValue = equation[index]
 
-    if (temporarySum == wantedSum) {
+    if (
+        isValid(
+            equation = equation,
+            sumSoFar = sumSoFar + currentValue,
+            index = index + 1,
+            wantedSum = wantedSum,
+            concatenate = concatenate
+        )
+    ) {
         return true
-    } else {
-        temporarySum = 0
-        addOrMultiple(0, false)
+    }
 
-        if (temporarySum == wantedSum) {
-            return true
-        }
+    if (
+        isValid(
+            equation = equation,
+            sumSoFar = sumSoFar * currentValue,
+            index = index + 1,
+            wantedSum = wantedSum,
+            concatenate = concatenate
+        )
+    ) {
+        return true
+    }
+
+    if (
+        concatenate &&
+        isValid(
+            equation = equation,
+            sumSoFar = "$sumSoFar${equation[index]}".toLong(),
+            index = index + 1,
+            wantedSum = wantedSum,
+            concatenate = concatenate
+        )
+    ) {
+        return true
     }
 
     return false
 }
-
-private enum class Type {
-    Add,
-    Multiply,
-    CombineAdd,
-    CombineMultiple
-}
-
-private fun isValidEquation2(equation: List<Long>, wantedSum: Long): Boolean {
-    var temporarySum = 0L
-
-    fun addOrMultiple(index: Int, type: Type) {
-        if (index + 1 == equation.size) {
-            return
-        }
-
-        val value = equation[index]
-        val combined = "$temporarySum${equation[index]}".toLongOrNull() ?: return
-
-        when (type) {
-            Type.Add -> {
-                //println("Equation: $temporarySum + $value = ${temporarySum + value} $index")
-                temporarySum += value
-            }
-
-            Type.Multiply -> {
-                //println("Equation: $temporarySum * $value = ${temporarySum * value} $index")
-                temporarySum *= value
-            }
-
-            Type.CombineAdd -> {
-                if (index == 0 && equation.size == 2) {
-                    temporarySum = "${equation[0]}${equation[1]}".toLong()
-                    //println("Equation comb add: $combined  = $temporarySum")
-                } else {
-                    //println("Equation comb add: $combined + ${equation[index + 1]} = $temporarySum")
-                    temporarySum = combined + equation[index + 1]
-                }
-            }
-
-            Type.CombineMultiple -> {
-                if (index == 0 && equation.size == 2) {
-                    temporarySum = "${equation[0]}${equation[1]}".toLong()
-                   // println("Equation comb multiple: $combined  = $temporarySum")
-                } else {
-                    temporarySum = combined * equation[index + 1]
-                   // println("Equation comb multiply: $combined * ${equation[index + 1]} = $temporarySum")
-                }
-            }
-        }
-
-        val sumBefore = temporarySum
-        addOrMultiple(index + 1, Type.Add)
-
-        if (temporarySum == wantedSum) {
-            return
-        }
-        temporarySum = sumBefore
-        addOrMultiple(index + 1, Type.Multiply)
-
-        if (temporarySum == wantedSum) {
-            return
-        }
-        temporarySum = sumBefore
-        addOrMultiple(index + 1, Type.CombineAdd)
-
-        if (temporarySum == wantedSum) {
-            return
-        }
-        temporarySum = sumBefore
-        addOrMultiple(index + 1, Type.CombineMultiple)
-    }
-
-    addOrMultiple(0, Type.Add)
-
-    if (temporarySum == wantedSum) {
-        return true
-    } else {
-        temporarySum = 0
-        addOrMultiple(0, Type.Multiply)
-
-        if (temporarySum == wantedSum) {
-            return true
-        }
-
-        temporarySum = 0
-        addOrMultiple(0, Type.CombineAdd)
-
-        if (temporarySum == wantedSum) {
-            return true
-        } else {
-            temporarySum = 0
-            addOrMultiple(0, Type.CombineMultiple)
-
-            if (temporarySum == wantedSum) {
-                return true
-            }
-        }
-    }
-
-    return false
-}
-
