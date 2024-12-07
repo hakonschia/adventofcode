@@ -81,7 +81,7 @@ private fun isValid(
     if (
         isValid(
             equation = equation,
-            sumSoFar = sumSoFar * currentValue,
+            sumSoFar = if (index == 0) currentValue else sumSoFar * currentValue,
             index = index + 1,
             wantedSum = wantedSum,
             concatenate = concatenate
@@ -90,11 +90,14 @@ private fun isValid(
         return true
     }
 
+    // Makes it run "a lot" faster since we avoid the string to long conversion
+    if (sumSoFar > wantedSum) return false
+
     if (
         concatenate &&
         isValid(
             equation = equation,
-            sumSoFar = "$sumSoFar${equation[index]}".toLong(),
+            sumSoFar = "$sumSoFar$currentValue".toLong(),
             index = index + 1,
             wantedSum = wantedSum,
             concatenate = concatenate
