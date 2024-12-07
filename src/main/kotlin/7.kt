@@ -18,7 +18,7 @@ fun seven() {
 
     val (sum, time) = measureTimedValue {
         testValuesAndEquations.sumOf { (testValue, equation) ->
-            if (isValid(equation = equation, wantedSum = testValue, sumSoFar = 0L, index = 0, concatenate = false)) {
+            if (isValid(equation = equation, wantedSum = testValue, sumSoFar = equation.first(), index = 1, concatenate = false)) {
                 testValue
             } else {
                 0
@@ -42,7 +42,7 @@ fun sevenHard() {
 
     val (sum, time) = measureTimedValue {
         testValuesAndEquations.sumOf { (testValue, equation) ->
-            if (isValid(equation = equation, wantedSum = testValue, sumSoFar = 0L, index = 0, concatenate = true)) {
+            if (isValid(equation = equation, wantedSum = testValue, sumSoFar = equation.first(), index = 1, concatenate = true)) {
                 testValue
             } else {
                 0
@@ -81,7 +81,7 @@ private fun isValid(
     if (
         isValid(
             equation = equation,
-            sumSoFar = if (index == 0) currentValue else sumSoFar * currentValue,
+            sumSoFar = sumSoFar * currentValue,
             index = index + 1,
             wantedSum = wantedSum,
             concatenate = concatenate
