@@ -4,6 +4,6 @@ import six
 import sixHard
 
 fun main() {
-    seven()
+    //seven()
     sevenHard()
 }
