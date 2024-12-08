@@ -21,73 +21,32 @@ fun eight() {
         }
     }
 
-    val safeToEditMap = input.map { it.toCharArray() }.toTypedArray()
+    val positionsAdded = mutableListOf<Pair<Char, Pair<Int, Int>>>()
 
-    var count = 0
-
-    positions.forEach { key, innerPositions ->
+    positions.forEach { (key, innerPositions) ->
         innerPositions.forEach { outer ->
             innerPositions.forEach { inner ->
-                val directionY = if (inner.first < outer.first) {
-                    abs(inner.first - outer.first)
-                } else {
-                    outer.first - inner.first
-                }
+                if (outer != inner) {
+                    val distance = (outer.first - inner.first) to (outer.second - inner.second)
 
-                val directionX = if (inner.second < outer.second) {
-                    abs(inner.second - outer.second)
-                } else {
-                    outer.second - inner.second
-                }
+                    val antiNodeA = (outer.first + distance.first) to (outer.second + distance.second)
+                    val antiNodeB = inner.first + distance.first to inner.second + distance.second
 
-                val direction = directionY to directionX
-
-                val antiNodeA = (outer.first + direction.first) to (outer.second + direction.second)
-                val antiNodeB = inner.first + directionY to inner.second + directionX
-
-                println("outer=$outer inner=$inner antinodeA: $antiNodeA antinodeB: $antiNodeB, direction $direction")
-
-                try {
-                    val current = safeToEditMap[antiNodeA.first][antiNodeA.second]
-                    if (current == '#') {
-                        count++
-                        println("- Already found # at $antiNodeA for $key!")
-                    }
-
-                    if (current == '.') {
-                        safeToEditMap[antiNodeA.first][antiNodeA.second] = '#'
-                        count++
-                        println("- put # at $antiNodeA for $key (count=$count)")
-                        safeToEditMap.print()
-                    }
-                } catch (e: IndexOutOfBoundsException) {
-                    println("- out of bounds $antiNodeA")
-                }
-
-                try {
-                    val current = safeToEditMap[antiNodeB.first][antiNodeB.second]
-                    if (current == '#') {
-                        println("- Already found # at $antiNodeB for $key!")
-                        count++
-                    }
-
-                    if (current == '.') {
-                        safeToEditMap[antiNodeB.first][antiNodeB.second] = '#'
-                        count++
-                        println("- put # at $antiNodeB for $key (count=$count)")
-                        safeToEditMap.print()
-                    }
-                } catch (e: IndexOutOfBoundsException) {
-                    println("- out of bounds $antiNodeB")
+                    positionsAdded.add(key to antiNodeA)
+                    positionsAdded.add(key to antiNodeB)
                 }
             }
-            println()
         }
     }
 
-    safeToEditMap.print()
+    val positionsFiltered = positionsAdded
+        .filter { (_, position) -> position.first >= 0 && position.first < map.size && position.second >= 0 && position.second < map.size }
+        .filterIndexed { index, (key, position) ->
+            map[position.first][position.second] == '.' || map[position.first][position.second] != key
+        }
+        .distinctBy { it.second }
 
-    println("Eight $count, size=${safeToEditMap.size}")
+    println("Eight ${positionsFiltered.size}")
 }
 
 fun eightHard() {
