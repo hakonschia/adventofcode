@@ -56,19 +56,17 @@ private fun Array<CharArray>.findPositions(hard: Boolean): List<Pair<Char, Pair<
     positions.forEach { (key, innerPositions) ->
         innerPositions.forEach { outer ->
             innerPositions.forEach { inner ->
-                if (outer != inner) {
-                    val distance = (outer.first - inner.first) to (outer.second - inner.second)
+                val distance = (outer.first - inner.first) to (outer.second - inner.second)
 
-                    // Will add tons of out-of-bounds nodes, will just remove them later
-                    val iterations = if (hard) map.size else 1
+                // Will add tons of out-of-bounds nodes, will just remove them later
+                val iterations = if (hard) map.size else 1
 
-                    for (i in 1 until iterations + 1) {
-                        val antiNodeA = (outer.first + (distance.first * i)) to (outer.second + (distance.second * i))
-                        val antiNodeB = inner.first + (distance.first * i) to inner.second + (distance.second * i)
+                for (i in 1 until iterations + 1) {
+                    val antiNodeA = (outer.first + (distance.first * i)) to (outer.second + (distance.second * i))
+                    val antiNodeB = inner.first + (distance.first * i) to inner.second + (distance.second * i)
 
-                        positionsAdded.add(key to antiNodeA)
-                        positionsAdded.add(key to antiNodeB)
-                    }
+                    positionsAdded.add(key to antiNodeA)
+                    positionsAdded.add(key to antiNodeB)
                 }
             }
         }
