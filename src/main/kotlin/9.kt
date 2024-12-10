@@ -17,68 +17,148 @@ fun nine() {
         lengthAndSpace.add(length to emptySpace)
     }
 
-    fun List<Pair<Int, Int>>.sublistWithSpaces(afterSpace: Int, spaceToTake: Int): List<Pair<Int, Int>> {
-        val newList = mutableListOf<Pair<Int, Int>>()
-        var spaceUsed = 0
-        var totalIndex = 0
+    val lengthsWithSpacesAdjusted = lengthAndSpace.mapIndexed { index, pair ->
+        index to pair
+    }.toMutableList()
 
-        indices.reversed().forEach { index ->
-            val (length, _) = get(index)
 
-            var lengthToTakeFromThis = 0
+    fun List<Pair<Int, Pair<Int, Int>>>.print() {
+        forEach {
+            val (fileId, pair) = it
+            val (length, space) = pair
             for (i in 0 until length) {
-                if (totalIndex >= afterSpace) {
-                    if (spaceUsed < spaceToTake) {
-                        lengthToTakeFromThis++
-                        spaceUsed++
-                    }
-                }
-
-                totalIndex++
+                print(fileId)
             }
-
-            if (lengthToTakeFromThis != 0) {
-                newList.add(0, index to lengthToTakeFromThis)
+            for (i in 0 until space) {
+                print('.')
             }
         }
-
-        return newList
+        println()
     }
 
-    val lengthsWithSpacesAdjusted = lengthAndSpace.toMutableList()
+    lengthAndSpace.indices.reversed().forEach { fileId ->
+        val (length, _) = lengthAndSpace[fileId]
 
-    var spaceUsed = 0
-    var index = 0
-    val path2 = mutableListOf<Int>()
-
-    lengthAndSpace.forEachIndexed { fileId, (length, space) ->
-        for (i in 0 until length) {
-            path2.add(fileId)
-            index++
+        //   println("Searching for a place for $fileId who is $length long $lengthsWithSpacesAdjusted")
+        val indexOfPlaceItFits = lengthsWithSpacesAdjusted.indexOfFirst { it.second.second >= length }
+        if (indexOfPlaceItFits > fileId) {
+            return@forEach
+        }
+        if (indexOfPlaceItFits == -1) {
+            return@forEach
         }
 
-        val movedFiles = lengthsWithSpacesAdjusted.sublistWithSpaces(spaceUsed, space)
+        val indexToRemove = lengthsWithSpacesAdjusted.indexOfFirst { it.first == fileId }
+        val space = lengthsWithSpacesAdjusted[indexToRemove].second.second
+        val placeItFits = lengthsWithSpacesAdjusted[indexOfPlaceItFits]
+        println("$fileId can be moved to after $indexOfPlaceItFits $placeItFits")
 
-        movedFiles.reversed().forEach { (fileId, length) ->
-            for (i in 0 until length) {
-                path2.add(fileId)
-                spaceUsed++
-                index++
-            }
-        }
+        lengthsWithSpacesAdjusted.print()
+
+        // Remove space from this as it was set on the one above
+        lengthsWithSpacesAdjusted[indexOfPlaceItFits] = placeItFits.first to (placeItFits.second.first to 0)
+        println("- Removed space from where we move to")
+        lengthsWithSpacesAdjusted.print()
+        println()
+
+        println("------${lengthsWithSpacesAdjusted.get(indexToRemove)}")
+        lengthsWithSpacesAdjusted.removeAt(indexToRemove)
+        println("- Removed $fileId from its original position")
+        lengthsWithSpacesAdjusted.print()
+        println()
+
+        // Add the item in the space, and make this item have the remaining space if someone else needs it later
+        val remainingSpace = placeItFits.second.second - length
+        lengthsWithSpacesAdjusted.add(indexOfPlaceItFits + 1, fileId to (length to remainingSpace))
+        println("- Moved $fileId to its new position")
+        lengthsWithSpacesAdjusted.print()
+        println()
+
+        // Update space at the item before the moved item, it should now also have the moved space
+        val indexOfBeforeMoved = indexToRemove
+        val beforeMoved = lengthsWithSpacesAdjusted[indexOfBeforeMoved]
+        lengthsWithSpacesAdjusted[indexOfBeforeMoved] = beforeMoved.first to (beforeMoved.second.first to (beforeMoved.second.second + length + space))
+        println("- Added space to item before the moved one ($beforeMoved) $indexOfBeforeMoved ${beforeMoved.second.second} $length $space")
+        lengthsWithSpacesAdjusted.print()
+
+
+        println("iteration over")
+
+        println()
+        println()
     }
 
+    lengthsWithSpacesAdjusted.print()
+    println()
+
+    var totalIndex = 0
     var s = 0L
-
-    val realPath = path2.take(path2.size - spaceUsed)
-    realPath.forEachIndexed { index2, fileId ->
-        s += index2 * fileId
+    lengthsWithSpacesAdjusted.forEach {
+        val (fileId, pair) = it
+        val (length, space ) = pair
+        for (i in 0 until length) {
+            println("added $fileId")
+            s += totalIndex * fileId
+            totalIndex++
+        }
+        for (i in 0 until space) {
+            totalIndex++
+        }
     }
 
-    println("n9ne  $s")
+    println("n9ne $s")
 }
 
 fun nineHard() {
     val input = Path("src/main/resources/9.txt").readLines()
 
 }
+
+/*
+    val lengthsWithSpacesAdjusted = lengthAndSpace.toMutableList()
+
+    lengthAndSpace.indices.reversed().forEach { fileId ->
+        val (length, _) = lengthAndSpace[fileId]
+
+        println("Searching for a place for $fileId who is $length long $lengthsWithSpacesAdjusted")
+        val indexOfPlaceItFits = lengthsWithSpacesAdjusted.indexOfFirst { it.second >= length }
+        if (indexOfPlaceItFits > fileId) {
+            println("$fileId can move, but its backwards lul")
+            return@forEach
+        }
+        if (indexOfPlaceItFits == -1) {
+            println("$fileId doesnt fit anywhere, not moving")
+            return@forEach
+        }
+
+        val fuckingCuck = lengthsWithSpacesAdjusted[indexOfPlaceItFits]
+        println("$fileId can be moved to after $indexOfPlaceItFits $fuckingCuck")
+
+        val adjusted =  fuckingCuck.second - length
+
+        // Remove space from this as it was set on the one above
+        lengthsWithSpacesAdjusted[indexOfPlaceItFits] = fuckingCuck.first to 0
+        println("- Removed space from where we move to")
+            lengthsWithSpacesAdjusted.print()
+
+
+        // Update space at the item before the moved item, it should now also have the moved space
+        lengthsWithSpacesAdjusted[fileId - 1].let {
+            lengthsWithSpacesAdjusted[fileId - 1] = it.first to it.second + length
+        }
+        println("- Added space to item before the moved one")
+        println("- $lengthsWithSpacesAdjusted")
+
+        lengthsWithSpacesAdjusted.removeAt(fileId)
+        println("- Removed moved from its original position")
+        println("- $lengthsWithSpacesAdjusted")
+
+        // Add the item in the space, and make this item have the remaining space if someone else needs it later
+        // -fileId to know the fileId of moved items
+        lengthsWithSpacesAdjusted.add(indexOfPlaceItFits + 1, -fileId to adjusted)
+        println("- Moved the moving to its new position")
+        println("- $lengthsWithSpacesAdjusted")
+
+        println()
+    }
+ */
