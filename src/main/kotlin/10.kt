@@ -6,15 +6,7 @@ fun ten() {
 
     val map = input.map { it.map { "$it".toInt() } }
 
-    val trailheads = mutableListOf<Pair<Int, Int>>()
-    map.forEachIndexed { index, ints ->
-        ints.forEachIndexed { innerIndex, i ->
-            if (i == 0) {
-                trailheads.add(index to innerIndex)
-            }
-        }
-    }
-
+    val trailheads = map.findTrailheads()
     val sum = trailheads.sumOf { map.findPathsToTop(hard = false, it) }
 
     println("Ten easy $sum")
@@ -25,8 +17,15 @@ fun tenHard() {
 
     val map = input.map { it.map { "$it".toInt() } }
 
+    val trailheads = map.findTrailheads()
+    val sum = trailheads.sumOf { map.findPathsToTop(hard = true, it) }
+
+    println("Ten hard $sum")
+}
+
+private fun List<List<Int>>.findTrailheads(): List<Pair<Int, Int>> {
     val trailheads = mutableListOf<Pair<Int, Int>>()
-    map.forEachIndexed { index, ints ->
+    forEachIndexed { index, ints ->
         ints.forEachIndexed { innerIndex, i ->
             if (i == 0) {
                 trailheads.add(index to innerIndex)
@@ -34,9 +33,7 @@ fun tenHard() {
         }
     }
 
-    val sum = trailheads.sumOf { map.findPathsToTop(hard = true, it) }
-
-    println("Ten hard $sum")
+    return trailheads
 }
 
 private fun List<List<Int>>.findPathsToTop(hard: Boolean, position: Pair<Int, Int>): Int {
