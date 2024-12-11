@@ -4,6 +4,6 @@ import eleven
 import elevenHard
 
 fun main() {
-    eleven()
-    //elevenHard()
+    //eleven()
+    elevenHard()
 }
