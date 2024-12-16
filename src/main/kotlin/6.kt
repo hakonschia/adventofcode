@@ -1,16 +1,6 @@
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
 
-fun Array<CharArray>.print() {
-    forEach { outer ->
-        outer.forEach { inner ->
-            print(inner)
-
-        }
-        println()
-    }
-}
-
 class InALoopException() : Exception("Hooray, you tricked the guard")
 
 fun six() {
