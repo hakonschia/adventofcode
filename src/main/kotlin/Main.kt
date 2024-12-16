@@ -1,7 +1,7 @@
 package org.example
 
-import fifteen
+import sixteen
 
 fun main() {
-    fifteen()
+    sixteen()
 }

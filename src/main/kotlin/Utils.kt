@@ -23,6 +23,12 @@ fun List<CharArray>.mutableCopy(): Array<CharArray> {
     }.toTypedArray()
 }
 
+fun Array<CharArray>.mutableCopy(): Array<CharArray> {
+    return map {
+        it.clone()
+    }.toTypedArray()
+}
+
 fun Array<CharArray>.findChar(char: Char): Pair<Int, Int> {
     forEachIndexed { index, outer ->
         outer.forEachIndexed { innerIndex, inner ->
